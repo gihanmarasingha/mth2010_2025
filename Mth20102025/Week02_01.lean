@@ -111,6 +111,93 @@ example : s * t = c[1, 4] * c[3, 2, 0] := by decide
 example : s⁻¹⁻¹ = s := by decide
 
 
+/-!
+
+## Order of an element
+
+For a finite group `G`, the order of a group element `g ∈ G` is the smallest positive integer `n`
+such that `gⁿ = 1` (where `1` is the identity element, usally written `e` in standard mathmematics).
+
+The following Lean code computes the order of any group element. You need not understand the code.
+-/
+
+variable {G : Type*} [Group G] [Fintype G] [DecidableEq G]
+
+def OrderOf(g : G) : ℕ :=
+  let L := (List.range (Fintype.card G + 1)).filter (fun n => 0 < n ∧ g ^ n = 1)
+  L.headD 1
+
+/-!
+
+### Playing with orders.
+
+Let's investigate the orders of some elements.
+
+-/
+
+#eval OrderOf c1
+
+#eval OrderOf c2
+
+#eval OrderOf (c1 * c2)
+
+#eval OrderOf (s * t)
+
+
+
+/-!
+
+### Exercise 2
+
+* Find an element of `S 5` of order `6`.
+* Find an element of `S 7` of order `6`, expressed as a product of 3 disjoint
+  cycles (not including singleton cycles).
+* Check your answers in the space below by defining cycles in Lean and using
+  `OrderOf`
+-/
+
+
+
+
+
+
+
+
+
+
+
+
+/-!
+
+## The sign of a permutation
+
+A permutation is of odd sign (or has sign -1) if it can be expressed as a product of an odd
+number of transpositions. Otherwise, it is even (or has sign 1)
+-/
+
+#eval c1.sign
+
+#eval c2.sign
+
+#eval (c1 * c2).sign
+
+
+
+
+/-!
+
+### Exercise 3
+
+1. How does the sign depend on the cycle type of a permutation?
+2. Check this by calculation in Lean in the space below.
+-/
+
+
+
+
+
+
+
 
 /-!
 
@@ -130,7 +217,7 @@ A group `G` acts on itself by the conjugacy action
 
 `g • h := g * h * g⁻¹`
 
-### Exercise 3
+### Exercise 4
 
 1. Show, by hand, that the conjugacy action is a group action.
 2. Complete the Lean proof below that the conjugacy action is a group action.
@@ -168,7 +255,7 @@ Type `\[--` to produce the commutator brackets.
 
 /-!
 
-### Exercise 2
+### Exercise 5
 
 1. Experiment, by varying `x`, to determine when `⁅s, x⁆` is `1` (Don't skip
   past the following blank lines that contain the answer)!
@@ -224,7 +311,7 @@ def centralizerSet {n : Nat} (s : Perm (Fin n)) : Finset (Perm (Fin n)) :=
 
 
 /-!
-### Exercise 3
+### Exercise 6
 
 1. What do you notice about the elements of `centralizer s`?
 2. Make a conjecture regarding what `centralizer x` looks like. Try different
@@ -246,42 +333,6 @@ def expected : Finset (Perm (Fin 5)) :=
 #eval (centralizerSet s).card         -- expect 6
 #eval expected.card            -- = 6
 #eval decide (expected = centralizerSet s)  -- expect `true`
-
-
-/-
-### Exercise 4
-
-Prove that `S n` is not abelian, for `n ≥ 3`.
--/
-
-/-- The predicate for a group to be abelian. -/
-def is_abelian (G) [Group G] := ∀ (x : G), ∀ (y : G), x * y = y * x
-
-example (n : Nat) : ¬ is_abelian (S (n+3)) := by
-  dsimp [is_abelian]
-  push_neg
-  let σ : S (n+3) := swap (0 : Fin (n+3)) 1 * swap (1 : Fin (n+3)) 2
-  let τ : S (n+3) := swap (0 : Fin (n+3)) 1
-  use σ, τ
-  -- Show (σ * τ) 0 ≠ (τ * σ) 0 by symbolic computation.
-  have hL : (σ * τ) (0 : Fin (n+3)) = 2 := by
-    simp [σ, τ]
-    apply swap_apply_of_ne_of_ne
-    · exact two_ne_zero
-    · intro two_eq_one
-      apply (one_ne_zero : (1 : Fin (n + 3)) ≠ 0)
-      change (1 : Fin (n +3)) + 1 = 0 + 1 at two_eq_one
-      apply add_right_cancel two_eq_one
-  have hR : (τ * σ) (0 : Fin (n+3)) = 0 := by
-    simp [σ, τ]
-    apply swap_apply_of_ne_of_ne
-    · exact zero_ne_one
-    · exact Ne.symm two_ne_zero
-  intro hEq
-  -- Apply both sides to 0 and use hL ≠ hR
-  rw [hEq, hR] at hL
-  have : (0 : Fin (n + 3)) ≠ 2 := Ne.symm two_ne_zero
-  contradiction
 
 
 #min_imports
