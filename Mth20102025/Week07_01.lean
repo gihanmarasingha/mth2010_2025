@@ -10,6 +10,13 @@ def f : ℚ[X] := 3 * X + 1
 
 def g : ℚ[X] := 5 * X^2 + 3
 
+def fs : ℕ →₀ ℚ :=
+  Finsupp.single 0 (1)
+
+def ps : Polynomial ℚ := Polynomial.ofFinsupp fs
+
+example : ps = C 1 := by rfl
+
 example : f + g = 5 * X ^ 2 + 3 * X + 4 := by
   simp [f, g]
   ring
@@ -53,7 +60,16 @@ example (p : ℚ[X]) (c : ℚ) (hc : p.eval c = 0) : (X - C c) ∣ p := by
   done
 
 example (p : ℚ[X]) (nz : p ≠ 0) : p.roots.card ≤ p.degree := by
+  rw [degree_eq_natDegree nz] -- ⊢ p.roots.card ≤ p.natDegree
+  induction' hp :  p.natDegree with n ih generalizing p
+  · have peq : p = C (p.coeff 0) := eq_C_of_natDegree_eq_zero hp
+    have h0 : p.roots.card ≤ 0 ↔ p.roots = ∅ := by simp
+    rw_mod_cast [h0]
+
+    sorry
   sorry
+
+
 
 def p : ℚ[X] := C 5 * X ^ 2 + C 0 * X + C 3
 
