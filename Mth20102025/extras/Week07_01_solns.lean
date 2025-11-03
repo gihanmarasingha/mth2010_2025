@@ -61,14 +61,17 @@ Define `σ` so that for every `g ∈ G` we have that for every `a ∈ A`,
 
 def σ (g : G) : A → A := τ g⁻¹
 
+example (g : G) : g⁻¹ * g = 1 := by exact inv_mul_cancel g
 
 lemma left_inverse (g : G) : LeftInverse (σ g) (τ g : A → A) := by
-  dsimp [LeftInverse]
-  sorry
+  dsimp [LeftInverse, σ, τ]
+  intro x
+  simp [←mul_smul]
 
 lemma right_inverse (g : G) : RightInverse (σ g) (τ g : A → A) := by
-  dsimp [RightInverse]
-  sorry
+  dsimp [RightInverse, LeftInverse, σ, τ]
+  intro x
+  simp [←mul_smul]
 
 /-
 Go to leansearch.net to find a result that states `f` is bijective
@@ -77,7 +80,9 @@ the proof below.
 -/
 
 lemma tau_bijective (g : G) : Bijective (τ g : A → A) := by
-  sorry
+  rw [bijective_iff_has_inverse]
+  use σ g
+  simp [left_inverse, right_inverse]
 
 /-
 The permutation representation is the map `π : G → Symm(A)` (where Symm(A) is the symmetry
@@ -96,13 +101,9 @@ Note that to specify an element of `Equiv.Perm A` is to specify a function
 
 def π (g : G) : Equiv.Perm A where
   toFun := τ g
-  invFun := sorry
-  left_inv := by
-    unfold LeftInverse
-    sorry
-  right_inv := by
-    unfold RightInverse
-    sorry
+  invFun := σ g
+  left_inv := left_inverse g
+  right_inv := right_inverse g
 
 /-
 ## The permutation representation as a group homomorphism
@@ -119,6 +120,9 @@ def permRep : G →* Equiv.Perm A :=
 { toFun    := π,
   map_one' := by
     ext a
-    sorry
+    simp [π, τ, σ]
   map_mul' := by
-    sorry }
+    intro g₁ g₂
+    ext a
+    simp [π, τ, σ, mul_smul]
+ }
