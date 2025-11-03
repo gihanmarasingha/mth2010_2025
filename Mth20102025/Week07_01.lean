@@ -94,4 +94,4 @@ def permRep : G →* Equiv.Perm A :=
   map_one' := by
     sorry
   map_mul' := by
-    sorry }  -- `
+    sorry }
