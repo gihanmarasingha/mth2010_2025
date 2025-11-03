@@ -12,16 +12,23 @@ Let `(G, *)` be a group and `A` a set (or type in Lean). We denote by
 * `1 • a = a` for all `a ∈ A` and
 * `(g₁ * g₂) • a = g₁ • (g₂ • a)` for all `g₁, g₂ ∈ G` and `a ∈ A`.
 
-This is represented in Lean as follows.
 
-**Note** that `•` is typed as `\bu` or `\smul`.
+
+**Notes**
+
+* `•` is not a group operation! The set `A` need not be a group.
+* The symbol `•` is typed as `\bu` or `\smul`.
+
+The equations that define a group action are represented in Lean as follows:
 -/
 
 variable {G A : Type*} [Group G] [MulAction G A]
 
+-- A proof that `1 • a = a`
 example (a : A) : (1 : G) • a = a := by
   simp
 
+-- A proof that `(g₁ * g₂) • a = g₁ • (g₂ • a)`
 example (g₁ g₂ : G) (a : A) : (g₁ * g₂) • a = g₁ • (g₂ • a) := by
   rw [mul_smul]
 
@@ -38,6 +45,11 @@ Then `τₕ` is a bijection for each `h ∈ G`.
 
 One way to prove this is to define a function `σₕ` , for each `h ∈ G`, and show that
 `σₕ` is a left inverse of `τₕ` and that `σₕ` is a right inverse of `τₕ`.
+
+Remember that if `p : X → Y` and `q : Y → X`, then
+
+* `p` is a left inverse of `q` means `p (q y) = y` for all `y ∈ Y`.
+* `p` is a right inverse of `q` means `q (p x) = x` for all `x ∈ X`.
 -/
 
 open Function
