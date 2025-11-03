@@ -52,6 +52,9 @@ example (p : ℚ[X]) (c : ℚ) (hc : p.eval c = 0) : (X - C c) ∣ p := by
   simp [hcoeff]
   done
 
+example (p : ℚ[X]) (nz : p ≠ 0) : p.roots.card ≤ p.degree := by
+  sorry
+
 def p : ℚ[X] := C 5 * X ^ 2 + C 0 * X + C 3
 
 lemma g_eq_p : g = p := by
