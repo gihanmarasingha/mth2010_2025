@@ -112,6 +112,33 @@ example : g.degree = 2 := by
   apply degree_quadratic
   simp
 
+lemma poly_division (f g : ℚ[X]) (gnz : g ≠ 0) :
+  ∃ h r : ℚ[X], f = h * g + r ∧ (r.degree < g.degree) := by
+
+  -- Use `by apply?` to find the proof below.
+  have gdegeq : g.degree = g.natDegree := by exact degree_eq_natDegree gnz
+  rw [gdegeq]
+  by_cases hf: f = 0
+  · use 0, 0
+    simp [hf]
+    -- use `by apply?` to find the proof below
+    exact compareOfLessAndEq_eq_lt.mp rfl
+  have fdegeq : f.degree = f.natDegree := by exact degree_eq_natDegree hf
+  set m := f.natDegree with mdef
+  set n := g.natDegree with ndef
+  by_cases nlem : n ≤ m
+  · induction' hp : m - n with k ih generalizing f
+    · have mneq : n = m := by
+        rw [Nat.sub_eq_zero_iff_le] at hp
+        apply Nat.le_antisymm nlem hp
+      set c := f.leadingCoeff / g.leadingCoeff
+      use C c, f - C c * g
+      sorry
+    sorry
+  use 0, f
+  aesop
+
+
 end section
 
 #min_imports
