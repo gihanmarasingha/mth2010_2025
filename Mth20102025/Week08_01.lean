@@ -44,11 +44,7 @@ namespace examples
 lemma mul_zero (a : R) : 0 = a * 0 := by
   calc
     0 = (a * 0) + -(a * 0) := by rw [add_neg_cancel]
-    _ = (a * (0 + 0)) + -(a * 0) := by rw [add_zero]
-    _ = ((a * 0) + (a * 0)) + -(a * 0) := by rw [left_distrib]
-    _ = (a * 0) + ((a * 0) + -(a * 0)) := by rw [add_assoc]
-    _ = a * 0 + 0 := by rw [add_neg_cancel]
-    _ = a * 0 := by rw [add_zero]
+    _ = a * 0 := by sorry
 
 lemma neg_mul : (-a) * b = -(a * b) := by
   suffices h : (-a) * b + (a * b) = 0 by
