@@ -56,7 +56,7 @@ lemma neg_mul : (-a) * b = -(a * b) := by
 lemma neg_mul_neg : (-a) * (-b) = a * b := by
   sorry
 
-lemma mul_one : (-a) * 1 = -a := by
+lemma neg_eq_neg_one_mul : -a = (-1) * a := by
   sorry
 
 end examples

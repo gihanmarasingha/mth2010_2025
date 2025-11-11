@@ -53,15 +53,37 @@ lemma mul_zero (a : R) : 0 = a * 0 := by
 lemma neg_mul : (-a) * b = -(a * b) := by
   suffices h : (-a) * b + (a * b) = 0 by
     calc (-a) * b = (-a) * b + 0 := by rw [add_zero]
-    _ = -(a * b) := by sorry
-  calc (-a) * b + (a * b) = sorry := by sorry
-    _ = 0 := by sorry
+    _ = (-a) * b + (a * b + -(a * b)) := by rw [add_neg_cancel]
+    _ = ((-a) * b + a * b) + -(a * b) := by rw [add_assoc]
+    _ = 0 + -(a * b) := by rw [h]
+    _ = -(a * b) + 0 := by rw [add_comm]
+    _ = -(a * b) := by rw [add_zero]
+  calc (-a) * b + (a * b) = b * (-a) + b * a := by rw [mul_comm _ b, mul_comm _ b]
+    _ = b * (-a + a) := by rw [left_distrib]
+    _ = b * (a + -a) := by rw [add_comm]
+    _ = b * 0 := by rw [add_neg_cancel]
+    _ = 0 := by rw [←mul_zero]
 
+lemma neg_neg : -(-a) = a := by
+  calc
+    -(-a) = -(-a) + 0 := by rw [add_zero]
+    _ = -(-a) + (a + -a) := by rw [add_neg_cancel]
+    _ = -(-a) + (-a + a) := by rw [add_comm a]
+    _ = (-(-a) + -a) + a := by rw [add_assoc]
+    _ = (-a + -(-a)) + a := by rw [add_comm (-a)]
+    _ = 0 + a := by rw [add_neg_cancel]
+    _ = a + 0 := by rw [add_comm]
+    _ = a := by rw [add_zero]
 
 lemma neg_mul_neg : (-a) * (-b) = a * b := by
-  sorry
+  calc
+    (-a) * (-b) = -(a * (-b)) := by rw [neg_mul]
+    _ = -((-b) * a) := by rw [mul_comm]
+    _ = -(-(b * a)) := by rw [neg_mul]
+    _ = -(-(a * b)) := by rw [mul_comm]
+    _ = a * b := by rw [neg_neg]
 
-lemma mul_one : (-a) * 1 = -a := by
+lemma neg_eq_neg_one_mul : -a = (-1) * a := by
   sorry
 
 
