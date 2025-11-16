@@ -87,23 +87,20 @@ def vring : Subring' K where
     rw [v.mul_add']
     exact Left.add_nonneg ha hb -- Find via `apply?`
 
-/- lemma val_inv (x : K) (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
-  rcases (ne_zero_val_int v hnz) with ⟨n, hn⟩
-  rcases (ne_zero_val_int v (inv_ne_zero hnz)) with ⟨m, hm⟩
-  have hinu : ∃ z : Kˣ, z = x := by
-    refine Units.exists0.mpr ?_
-    use x, hnz
-    exact rfl
-  rcases hinu with ⟨z, hz⟩
+lemma val_inv (x : K) (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
     calc 0 = v.f 1 := by rw [one_val]
-    _ = v.f (z * z⁻¹) := by simp
-    _ = v.f z + v.f z⁻¹ := by rw [v.mul_add']; norm_cast
-    _ = v.f x + v.f x⁻¹ := by rw [hz]
-
-  calc v.f x⁻¹ = 0 + v.f x⁻¹ := by rw [zero_add]
-  _ = (-(v.f x) + v.f x) + v.f x⁻¹ := by rw [neg_add_cancel (v.f x)]
-  _ = - v.f x := by sorry -/
+    _ = v.f (x * x⁻¹) := by rw [mul_inv_cancel₀ hnz]
+    _ = v.f x + v.f x⁻¹ := by rw [v.mul_add']
+  rcases (ne_zero_val_int v hnz) with ⟨n, hn⟩
+  rcases (ne_zero_val_int v (inv_ne_zero hnz)) with ⟨m, hm⟩
+  have hnmsump : 0 = (n : WithTop ℤ) + (m : WithTop ℤ) := by
+    rw [←hn, ←hm, h]
+  have hnmsum : 0 = n + m := by
+    exact_mod_cast hnmsump
+  have hmneg : m = -n := by linarith
+  rw [hm, hn, hmneg]
+  norm_cast
 
 lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ ∈ (vring v).carrier := by
   rw [or_iff_not_imp_left]
