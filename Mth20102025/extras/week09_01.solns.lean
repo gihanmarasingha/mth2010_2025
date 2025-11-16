@@ -87,7 +87,7 @@ def vring : Subring' K where
     rw [v.mul_add']
     exact Left.add_nonneg ha hb -- Find via `apply?`
 
-lemma val_inv (x : K) (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
+lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
     calc 0 = v.f 1 := by rw [one_val]
     _ = v.f (x * x⁻¹) := by rw [mul_inv_cancel₀ hnz]
@@ -105,6 +105,19 @@ lemma val_inv (x : K) (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
 lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ ∈ (vring v).carrier := by
   rw [or_iff_not_imp_left]
   intro hxnot
-  sorry
+  show v.f x⁻¹ ≥ 0
+  contrapose! hxnot
+  show v.f x ≥ 0
+  rw [val_inv v h] at hxnot
+  rcases (ne_zero_val_int v h) with ⟨n, hn⟩
+  have h1t : -(n : WithTop ℤ) < 0 := by rwa [←hn]
+  have h1 : -n < 0 := by exact_mod_cast h1t
+  have h2 : n ≥ 0 := by linarith
+  have h2t : (n : WithTop ℤ) ≥ 0 := by exact_mod_cast h2
+  rwa [hn]
+
+/- lemma vring_unit (x : (vring v).carrier) : IsUnit x ↔ v.f x ≥ 0 := by
+  sorry -/
+
 
 end VFunc
