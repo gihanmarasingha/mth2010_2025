@@ -6,8 +6,6 @@ A certain subring of a field.
 
 open Function
 
---structure Subring' (R : Type*) [Ring R] extends AddSubgroup R, Subsemigroup R
-
 structure VFunc (K : Type*) [Field K] where
   f : K → WithTop ℤ
   zero_val : ∀ x, f x = ⊤ ↔ x = 0
@@ -25,6 +23,31 @@ lemma ne_zero_val_int {x : K} (hxnz : x ≠ 0) : ∃ (n : ℤ), v.f x = n := by
     rw [v.zero_val] at h
     exact hxnz h
   exact Option.ne_none_iff_exists'.mp hne
+
+noncomputable def valZ (x : Kˣ) : ℤ :=
+  Classical.choose (v.ne_zero_val_int (by exact x.ne_zero))
+
+lemma valZ_spec (x : Kˣ) :
+    v.f (x : K) = (v.valZ x : WithTop ℤ) :=
+  Classical.choose_spec (v.ne_zero_val_int (x.ne_zero))
+
+lemma valZ_mul (x y : Kˣ) :
+    v.valZ (x * y) = v.valZ x + v.valZ y := by
+  have h_with : v.f ((x * y : Kˣ) : K)
+      = v.f (x : K) + v.f (y : K) := by
+    simpa using v.mul_add' (x : K) (y : K)
+  have h_with' :
+      (v.valZ (x * y) : WithTop ℤ)
+        = (v.valZ x : WithTop ℤ) + (v.valZ y : WithTop ℤ) := by
+    repeat rw [←valZ_spec]
+    assumption
+  exact_mod_cast h_with'
+
+lemma one_valZ : v.valZ 1 = 0 := by
+  have hf : v.valZ 1 + v.valZ 1 = v.valZ 1 :=
+    calc v.valZ 1 + v.valZ 1 = v.valZ (1 * 1) := by rw [valZ_mul]
+    _ = v.valZ 1 := by norm_num
+  linarith
 
 lemma one_val : v.f 1 = 0 := by
   rcases (ne_zero_val_int v (one_ne_zero)) with ⟨n, hn⟩
@@ -61,7 +84,6 @@ lemma neg_val {x : K} : v.f (-x) = v.f x := by
     _ = 0 + v.f x := by rw [neg_one_val]
     _ = v.f x := by rw [zero_add]
 
-
 def vring : Subring K where
   carrier := {x : K | v.f (x : K) ≥ 0}
   mul_mem' := by
@@ -90,6 +112,12 @@ def vring : Subring K where
     rw [v.mul_add']
     rw [neg_one_val, zero_add]
     exact ha
+
+lemma val_invZ {x : Kˣ} : v.valZ x⁻¹ = -v.valZ x := by
+  have h : 0 = v.valZ x + v.valZ x⁻¹ :=
+    calc 0 = v.valZ 1 := by rw [one_valZ]
+    _ = v.valZ x + v.valZ x⁻¹ := by sorry
+  sorry
 
 lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
@@ -120,16 +148,24 @@ lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ 
   have h2t : (n : WithTop ℤ) ≥ 0 := by exact_mod_cast h2
   rwa [hn]
 
-/- lemma vring_unit {r : K} (hr : r ∈ vring v) : IsUnit r ↔ v.f r = 0 := by
-  change v.f r ≥ 0 at hr
+/- lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 := by
+  have rnn : v.f r ≥ 0 := r.property
   constructor
-  · rintro ⟨y, hy⟩
-    have hynn : v.f y ≥ 0 := by rwa [hy]
-    have hinvsum : v.f y + v.f y⁻¹ = 0 := by
-
+  · rintro ⟨s, hs⟩
+    have rnz : r ≠ 0 := by
+      intro req
+      have
+    have rssum : v.f r + v.f s = 0 :=
+      calc v.f r + v.f s = v.f (r * s) := by rw [v.mul_add']
+      _ = v.f 1 := by norm_cast; rw [hs]; norm_cast
+      _ = 0 := by rw [one_val]
+    have hss : v.f s ≥ 0 := s.property
+    apply le_antisymm
+    · by_contra!
+      have negs : v.f s < 0 := by sorry
+      linarith
       sorry
-
-    sorry
+    exact rnn
   sorry -/
 
 
