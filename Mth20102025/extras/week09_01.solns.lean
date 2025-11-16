@@ -72,7 +72,6 @@ lemma neg_val {x : K} : v.f (-x) = v.f x := by
     _ = 0 + v.f x := by rw [neg_one_val]
     _ = v.f x := by rw [zero_add]
 
-
 def vring : Subring K where
   carrier := {x : K | v.f (x : K) ≥ 0}
   mul_mem' := by
@@ -117,7 +116,7 @@ lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   rcases (ne_zero_val_int v hnz) with ⟨n, hn⟩
   rcases (ne_zero_val_int v (inv_ne_zero hnz)) with ⟨m, hm⟩
   have hnmsump : 0 = (n : WithTop ℤ) + (m : WithTop ℤ) := by
-    rw [←hn, ←hm, h]
+    simpa [hn, hm] using h
   have hnmsum : 0 = n + m := by
     exact_mod_cast hnmsump
   have hmneg : m = -n := by linarith
@@ -138,25 +137,81 @@ lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ 
   have h2t : (n : WithTop ℤ) ≥ 0 := by exact_mod_cast h2
   rwa [hn]
 
-/- lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 := by
+lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 := by
   have rnn : v.f r ≥ 0 := r.property
   constructor
   · rintro ⟨s, hs⟩
-    have rnz : r ≠ 0 := by
+    have myeq : r.1 * s.1 = 1 := by
+      exact_mod_cast hs
+    have rnz : r.1 ≠ 0 := by
       intro req
-      have
+      rw [req, zero_mul] at myeq
+      exact zero_ne_one myeq
+    have snz : s.1 ≠ 0 := by
+      intro seq
+      rw [seq, mul_zero] at myeq
+      exact zero_ne_one myeq
+    rcases (ne_zero_val_int v rnz) with ⟨n, hn⟩
+    rcases (ne_zero_val_int v snz) with ⟨m, hm⟩
     have rssum : v.f r + v.f s = 0 :=
       calc v.f r + v.f s = v.f (r * s) := by rw [v.mul_add']
       _ = v.f 1 := by norm_cast; rw [hs]; norm_cast
       _ = 0 := by rw [one_val]
+    have nmsump : (n : WithTop ℤ) + m = 0 := by simpa [hn, hm] using rssum
+    have nmsum : n + m = 0 := mod_cast nmsump
+    have hnnn : n ≥ 0 := by simpa [hn] using rnn
     have hss : v.f s ≥ 0 := s.property
-    apply le_antisymm
-    · by_contra!
-      have negs : v.f s < 0 := by sorry
-      linarith
-      sorry
-    exact rnn
-  sorry -/
+    have hmnn : m ≥ 0 := by simpa [hm] using hss
+    have hnzero : n = 0 := by linarith
+    simpa [hnzero] using hn
+/-   intro vrzero
+  have rnzero : r.1 ≠ 0 := by
+    by_contra!
+    rw [←v.zero_val] at this
+    have zeq : (0 : WithTop ℤ) = ⊤ := by
+      rw [←vrzero, this]
+    exact WithTop.zero_ne_top zeq
+  have hin : (r.1)⁻¹ ∈ (vring v).carrier := by
+    show v.f (r.1)⁻¹ ≥ 0
+    rw [val_inv]
+
+  use ⟨(r.1)⁻¹, hin⟩
+  have boo : (r.1) * (r.1)⁻¹ = 1 := mul_inv_cancel₀ rnzero -/
+
+  intro h0
+
+  -- first show (r : K) ≠ 0 using zero_val
+  have hr_ne0 : (r : K) ≠ 0 := by
+    intro h
+    -- zero_val : f x = ⊤ ↔ x = 0
+    have hz : v.f (r : K) = ⊤ := (v.zero_val (r : K)).2 h
+    -- contradiction: 0 = ⊤
+    have : (0 : WithTop ℤ) = ⊤ := by simpa [h0] using hz
+    cases this
+
+  -- valuation of inverse in K is zero as well
+  have h_inv0 : v.f ((r : K)⁻¹) = 0 := by
+    have h := v.val_inv (x := (r : K)) hr_ne0
+    -- h : v.f ((r : K)⁻¹) = - v.f (r : K)
+    simpa [h0] using h
+
+  -- so inverse also lies in the valuation ring
+  have hr_inv_nonneg : v.f ((r : K)⁻¹) ≥ 0 := by
+    simpa [h_inv0]
+
+  -- package the inverse as an element of vring v
+  let rinv : vring v := ⟨(r : K)⁻¹, hr_inv_nonneg⟩
+
+
+  -- now build an explicit unit in vring v with inverse rinv
+  have h1 : r * rinv = (1 : v.vring) := by
+    ext
+    simp [rinv, hr_ne0]
+  have h2 : rinv * r = (1 : v.vring) := by
+    ext
+    simp [rinv, hr_ne0]
+
+  use rinv
 
 
 end VFunc
