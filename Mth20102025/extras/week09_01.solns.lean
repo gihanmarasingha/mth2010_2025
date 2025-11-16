@@ -49,40 +49,29 @@ lemma one_valZ : v.valZ 1 = 0 := by
     _ = v.valZ 1 := by norm_num
   linarith
 
-lemma one_val : v.f 1 = 0 := by
-  rcases (ne_zero_val_int v (one_ne_zero)) with ⟨n, hn⟩
-  have hf : v.f 1 + v.f 1 = v.f 1 + 0 :=
-    calc v.f 1 + v.f 1 = v.f (1 * 1) := by rw [v.mul_add']
-    _ = v.f 1 + 0 := by norm_num
-  have hneq : n + n = n + 0 := by
-    rw [hn] at hf
-    exact_mod_cast hf
-  have hnz : n = 0 := by apply add_left_cancel hneq
-  rw [hn, hnz]
-  norm_num
+lemma one_val : v.f (1 : K) = 0 := by
+  have h := v.valZ_spec (1 : Kˣ)
+  have hz : v.valZ (1 : Kˣ) = 0 := v.one_valZ
+  simpa [hz] using h
+
+lemma neg_one_valZ : v.valZ (-1) = 0 := by
+  have h : v.valZ 1 = v.valZ (-1) + v.valZ (-1) :=
+    calc v.valZ 1 = v.valZ ((-1) * (-1)) := by norm_num
+    _ = v.valZ (-1) + v.valZ (-1) := by rw [valZ_mul]
+  rw [one_valZ] at h
+  linarith
 
 lemma neg_one_val : v.f (-1) = 0 := by
-  have h : v.f 1 = v.f (-1) + v.f (-1) :=
-    calc v.f 1 = v.f ((-1) * (-1)) := by norm_num
-    _ = v.f (-1) + v.f (-1) := by rw [v.mul_add']
-  rw [one_val v] at h
-  have hnone : (-1 : K) ≠ 0 := by
-    refine neg_ne_zero.mpr ?_
-    exact one_ne_zero
-  rcases (ne_zero_val_int v hnone) with ⟨n, hn⟩
-  have hnsum : 0 = n + n := by
-    rw [hn] at h
-    exact_mod_cast h
-  have hnz : n = 0 := by
-    linarith
-  rw [hn]
-  exact_mod_cast hnz
+  have h := v.valZ_spec (-1 : Kˣ)
+  have hz : v.valZ (-1 : Kˣ) = 0 := v.neg_one_valZ
+  simpa [hz] using h
 
 lemma neg_val {x : K} : v.f (-x) = v.f x := by
   calc v.f (-x ) = v.f ((-1) * x) := by norm_num
     _ = v.f (-1) + v.f x := by rw [v.mul_add']
     _ = 0 + v.f x := by rw [neg_one_val]
     _ = v.f x := by rw [zero_add]
+
 
 def vring : Subring K where
   carrier := {x : K | v.f (x : K) ≥ 0}
@@ -116,8 +105,9 @@ def vring : Subring K where
 lemma val_invZ {x : Kˣ} : v.valZ x⁻¹ = -v.valZ x := by
   have h : 0 = v.valZ x + v.valZ x⁻¹ :=
     calc 0 = v.valZ 1 := by rw [one_valZ]
-    _ = v.valZ x + v.valZ x⁻¹ := by sorry
-  sorry
+    _ = v.valZ (x * x⁻¹) := by simp
+    _ = v.valZ x + v.valZ x⁻¹ := by rw [valZ_mul]
+  linarith
 
 lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
