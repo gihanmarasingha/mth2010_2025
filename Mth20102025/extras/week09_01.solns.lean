@@ -164,53 +164,21 @@ lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 :=
     have hmnn : m ≥ 0 := by simpa [hm] using hss
     have hnzero : n = 0 := by linarith
     simpa [hnzero] using hn
-/-   intro vrzero
-  have rnzero : r.1 ≠ 0 := by
+  intro vrzero
+  have rnzero : (r :  K) ≠ 0 := by
     by_contra!
     rw [←v.zero_val] at this
     have zeq : (0 : WithTop ℤ) = ⊤ := by
       rw [←vrzero, this]
     exact WithTop.zero_ne_top zeq
-  have hin : (r.1)⁻¹ ∈ (vring v).carrier := by
-    show v.f (r.1)⁻¹ ≥ 0
-    rw [val_inv]
-
-  use ⟨(r.1)⁻¹, hin⟩
-  have boo : (r.1) * (r.1)⁻¹ = 1 := mul_inv_cancel₀ rnzero -/
-
-  intro h0
-
-  -- first show (r : K) ≠ 0 using zero_val
-  have hr_ne0 : (r : K) ≠ 0 := by
-    intro h
-    -- zero_val : f x = ⊤ ↔ x = 0
-    have hz : v.f (r : K) = ⊤ := (v.zero_val (r : K)).2 h
-    -- contradiction: 0 = ⊤
-    have : (0 : WithTop ℤ) = ⊤ := by simpa [h0] using hz
-    cases this
-
-  -- valuation of inverse in K is zero as well
   have h_inv0 : v.f ((r : K)⁻¹) = 0 := by
-    have h := v.val_inv (x := (r : K)) hr_ne0
-    -- h : v.f ((r : K)⁻¹) = - v.f (r : K)
-    simpa [h0] using h
-
-  -- so inverse also lies in the valuation ring
-  have hr_inv_nonneg : v.f ((r : K)⁻¹) ≥ 0 := by
-    simpa [h_inv0]
-
-  -- package the inverse as an element of vring v
+    have h := v.val_inv (x := (r : K)) rnzero
+    simpa [vrzero] using h
+  have hr_inv_nonneg : v.f ((r : K)⁻¹) ≥ 0 := by simp [h_inv0]
   let rinv : vring v := ⟨(r : K)⁻¹, hr_inv_nonneg⟩
-
-
-  -- now build an explicit unit in vring v with inverse rinv
   have h1 : r * rinv = (1 : v.vring) := by
     ext
-    simp [rinv, hr_ne0]
-  have h2 : rinv * r = (1 : v.vring) := by
-    ext
-    simp [rinv, hr_ne0]
-
+    simp [rinv, rnzero]
   use rinv
 
 
