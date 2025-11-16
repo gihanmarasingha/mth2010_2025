@@ -6,7 +6,7 @@ A certain subring of a field.
 
 open Function
 
-structure Subring' (R : Type*) [Ring R] extends AddSubgroup R, Subsemigroup R
+--structure Subring' (R : Type*) [Ring R] extends AddSubgroup R, Subsemigroup R
 
 structure VFunc (K : Type*) [Field K] where
   f : K → WithTop ℤ
@@ -61,8 +61,17 @@ lemma neg_val {x : K} : v.f (-x) = v.f x := by
     _ = 0 + v.f x := by rw [neg_one_val]
     _ = v.f x := by rw [zero_add]
 
-def vring : Subring' K where
+
+def vring : Subring K where
   carrier := {x : K | v.f (x : K) ≥ 0}
+  mul_mem' := by
+    intro a b ha hb
+    simp only [Set.mem_setOf_eq] at * -- Find this from `simp?`
+    rw [v.mul_add']
+    exact Left.add_nonneg ha hb -- Find via `apply?`
+  one_mem' := by
+    show v.f 1 ≥ 0
+    rw [one_val]
   add_mem' := by
     intro a b (ha : v.f a ≥ 0) (hb : v.f b ≥ 0)
     show v.f (a + b) ≥ 0
@@ -81,11 +90,6 @@ def vring : Subring' K where
     rw [v.mul_add']
     rw [neg_one_val, zero_add]
     exact ha
-  mul_mem' := by
-    intro a b ha hb
-    simp only [Set.mem_setOf_eq] at * -- Find this from `simp?`
-    rw [v.mul_add']
-    exact Left.add_nonneg ha hb -- Find via `apply?`
 
 lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
@@ -116,7 +120,16 @@ lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ 
   have h2t : (n : WithTop ℤ) ≥ 0 := by exact_mod_cast h2
   rwa [hn]
 
-/- lemma vring_unit (x : (vring v).carrier) : IsUnit x ↔ v.f x ≥ 0 := by
+/- lemma vring_unit {r : K} (hr : r ∈ vring v) : IsUnit r ↔ v.f r = 0 := by
+  change v.f r ≥ 0 at hr
+  constructor
+  · rintro ⟨y, hy⟩
+    have hynn : v.f y ≥ 0 := by rwa [hy]
+    have hinvsum : v.f y + v.f y⁻¹ = 0 := by
+
+      sorry
+
+    sorry
   sorry -/
 
 
