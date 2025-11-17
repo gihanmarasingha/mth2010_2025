@@ -1,17 +1,24 @@
 import Mathlib
 
 /-
-A certain subring of a field.
+Formalisation of Coursework 3, MTH2010 2025
 -/
 
 open Function
 
+/-
+A function defined on `K`. This is slighly different to the function presented
+in the coursework sheet. Lean would struggle to work with addition on the
+multiplicative group `Kˣ`. Instead, we define a function `K → ℤ ∪ {∞}`. In Lean,
+`ℤ ∪ {∞}` is represented as `WithTop ℤ` and `∞` is written `⊤`, typed `\top`.
+-/
+
 structure VFunc (K : Type*) [Field K] where
   f : K → WithTop ℤ
-  zero_val : ∀ x, f x = ⊤ ↔ x = 0
-  surj' : f.Surjective
-  mul_add' : ∀ x y, f (x * y) = f x + f y
-  add_ge_min' : ∀ x y, f (x + y) ≥ min (f x) (f y)
+  top_iff_zero : ∀ x, f x = ⊤ ↔ x = 0
+  surj : f.Surjective
+  map_mul : ∀ x y, f (x * y) = f x + f y
+  map_add_ge_min : ∀ x y, f (x + y) ≥ min (f x) (f y)
 
 namespace VFunc
 
@@ -20,7 +27,7 @@ variable {K} [Field K] (v : VFunc K)
 lemma ne_zero_val_int {x : K} (hxnz : x ≠ 0) : ∃ (n : ℤ), v.f x = n := by
   have hne : v.f x ≠ ⊤ := by
     intro h
-    rw [v.zero_val] at h
+    rw [v.top_iff_zero] at h
     exact hxnz h
   exact Option.ne_none_iff_exists'.mp hne
 
@@ -35,7 +42,7 @@ lemma valZ_mul (x y : Kˣ) :
     v.valZ (x * y) = v.valZ x + v.valZ y := by
   have h_with : v.f ((x * y : Kˣ) : K)
       = v.f (x : K) + v.f (y : K) := by
-    simpa using v.mul_add' (x : K) (y : K)
+    simpa using v.map_mul (x : K) (y : K)
   have h_with' :
       (v.valZ (x * y) : WithTop ℤ)
         = (v.valZ x : WithTop ℤ) + (v.valZ y : WithTop ℤ) := by
@@ -68,7 +75,7 @@ lemma neg_one_val : v.f (-1) = 0 := by
 
 lemma neg_val {x : K} : v.f (-x) = v.f x := by
   calc v.f (-x ) = v.f ((-1) * x) := by norm_num
-    _ = v.f (-1) + v.f x := by rw [v.mul_add']
+    _ = v.f (-1) + v.f x := by rw [v.map_mul]
     _ = 0 + v.f x := by rw [neg_one_val]
     _ = v.f x := by rw [zero_add]
 
@@ -77,7 +84,7 @@ def vring : Subring K where
   mul_mem' := by
     intro a b ha hb
     simp only [Set.mem_setOf_eq] at * -- Find this from `simp?`
-    rw [v.mul_add']
+    rw [v.map_mul]
     exact Left.add_nonneg ha hb -- Find via `apply?`
   one_mem' := by
     show v.f 1 ≥ 0
@@ -85,11 +92,11 @@ def vring : Subring K where
   add_mem' := by
     intro a b (ha : v.f a ≥ 0) (hb : v.f b ≥ 0)
     show v.f (a + b) ≥ 0
-    calc v.f (a + b) ≥ min (v.f a) (v.f b) := by apply v.add_ge_min'
+    calc v.f (a + b) ≥ min (v.f a) (v.f b) := by apply v.map_add_ge_min
     _ ≥ 0 := by exact le_min ha hb -- Found using `apply?`
   zero_mem' := by
     show v.f 0 ≥ 0
-    have hz : v.f (0 : K) = ⊤ := by rw [v.zero_val]
+    have hz : v.f (0 : K) = ⊤ := by rw [v.top_iff_zero]
     rw [hz]
     exact OrderTop.le_top 0
   neg_mem' := by
@@ -97,7 +104,7 @@ def vring : Subring K where
     show v.f (-a) ≥ 0
     have h : -a = (-1) * a := by exact neg_eq_neg_one_mul a
     rw [h]
-    rw [v.mul_add']
+    rw [v.map_mul]
     rw [neg_one_val, zero_add]
     exact ha
 
@@ -112,7 +119,7 @@ lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   have h : 0 = v.f x + v.f x⁻¹ :=
     calc 0 = v.f 1 := by rw [one_val]
     _ = v.f (x * x⁻¹) := by rw [mul_inv_cancel₀ hnz]
-    _ = v.f x + v.f x⁻¹ := by rw [v.mul_add']
+    _ = v.f x + v.f x⁻¹ := by rw [v.map_mul]
   rcases (ne_zero_val_int v hnz) with ⟨n, hn⟩
   rcases (ne_zero_val_int v (inv_ne_zero hnz)) with ⟨m, hm⟩
   have hnmsump : 0 = (n : WithTop ℤ) + (m : WithTop ℤ) := by
@@ -155,7 +162,7 @@ lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 :=
     rcases (ne_zero_val_int v rnz) with ⟨n, hn⟩
     rcases (ne_zero_val_int v snz) with ⟨m, hm⟩
     have rssum : v.f r + v.f s = 0 :=
-      calc v.f r + v.f s = v.f (r * s) := by rw [v.mul_add']
+      calc v.f r + v.f s = v.f (r * s) := by rw [v.map_mul]
       _ = v.f 1 := by norm_cast; rw [hs]; norm_cast
       _ = 0 := by rw [one_val]
     have nmsump : (n : WithTop ℤ) + m = 0 := by simpa [hn, hm] using rssum
@@ -168,7 +175,7 @@ lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 :=
   intro vrzero
   have rnzero : (r :  K) ≠ 0 := by
     by_contra!
-    rw [←v.zero_val] at this
+    rw [←v.top_iff_zero] at this
     have zeq : (0 : WithTop ℤ) = ⊤ := by
       rw [←vrzero, this]
     exact WithTop.zero_ne_top zeq
@@ -250,14 +257,12 @@ lemma ker_eq : v.valZ_hom.ker = (vringUnitsSubgroup v) := by
       (v.mem_ker_iff_valZ (vringUnitsToUnits v u)).mpr hZ0
     simpa using this
 
-example (y : ℤ) : y ≠ (⊤ : WithTop ℤ) := by exact WithTop.coe_ne_top
-
 lemma vfsurj : Surjective (valZ v) := by
   intro y
-  obtain ⟨r, hr⟩ := v.surj' y
+  obtain ⟨r, hr⟩ := v.surj y
   have rnz : r ≠ 0 := by
     intro req
-    rw [←v.zero_val r] at req
+    rw [←v.top_iff_zero r] at req
     have : y ≠ (⊤ : WithTop ℤ) := by exact WithTop.coe_ne_top
     apply this
     rwa [←hr]
