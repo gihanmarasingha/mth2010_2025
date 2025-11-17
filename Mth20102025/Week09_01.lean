@@ -47,17 +47,16 @@ def im := {f r | r : R}
 /-
 # Exercise
 
-Show that the image of a ring homomorphism is an ideal.
+Show that the image of a ring homomorphism is a Subring of S.
 -/
 
-def im_ideal : Ideal S where
+def im_ideal : Subring S where
   carrier := im f
-  add_mem' := by
-    sorry
-  zero_mem' := by
-    sorry
-  smul_mem' := by
-    sorry
+  mul_mem' := by sorry
+  one_mem' := by sorry
+  add_mem' := by sorry
+  zero_mem' := by sorry
+  neg_mem' := by sorry
 
 /-
 # Exercise
