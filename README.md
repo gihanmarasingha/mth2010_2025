@@ -7,3 +7,4 @@ the links below to open the files directly in Lean 4 Web.
 * [Week 7](https://live.lean-lang.org/#url=https%3A%2F%2Fraw.githubusercontent.com%2Fgihanmarasingha%2Fmth2010_2025%2Frefs%2Fheads%2Fmain%2FMth20102025%2FWeek07_01.lean)
 * [Week 8](https://live.lean-lang.org/#url=https%3A%2F%2Fraw.githubusercontent.com%2Fgihanmarasingha%2Fmth2010_2025%2Frefs%2Fheads%2Fmain%2FMth20102025%2FWeek08_01.lean)
 * [Week 9](https://live.lean-lang.org/#url=https%3A%2F%2Fraw.githubusercontent.com%2Fgihanmarasingha%2Fmth2010_2025%2Frefs%2Fheads%2Fweek9%2FMth20102025%2FWeek09_01.lean)
+* [Week 9 - CW3 formalisation](https://github.com/gihanmarasingha/mth2010_2025/blob/main/Mth20102025/Week09_02.lean)
