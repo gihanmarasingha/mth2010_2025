@@ -1,7 +1,5 @@
 import Mathlib
 
-open scoped Pointwise
-
 variable {R} {S} {T} [CommRing R] [CommRing S] [CommRing T]
 
 namespace exercises
