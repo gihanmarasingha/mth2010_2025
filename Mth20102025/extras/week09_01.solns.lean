@@ -181,5 +181,103 @@ lemma vring_unit (r : vring v) : (∃ (s : vring v), r * s = 1) ↔ v.f r = 0 :=
     simp [rinv, rnzero]
   use rinv
 
+-- For now using the Units.map homomorphism from Mathlib
+def vringUnitsToUnits : (vring v)ˣ →* Kˣ :=
+  Units.map (vring v).subtype
+
+def vringUnitsSubgroup : Subgroup Kˣ := (vringUnitsToUnits v).range
+
+/-
+Now show the quotient group is isomorphic to (ℤ, +)
+-/
+
+noncomputable def valZ_hom : Kˣ →* Multiplicative ℤ where
+  toFun := valZ v
+  map_one' := one_valZ v
+  map_mul' := valZ_mul v
+
+noncomputable def fit_app : Kˣ ⧸ v.valZ_hom.ker ≃* v.valZ_hom.range :=
+  QuotientGroup.quotientKerEquivRange v.valZ_hom
+
+lemma mem_ker_iff_valZ (x : Kˣ) :
+  x ∈ v.valZ_hom.ker ↔ v.valZ x = 0 := by
+  simp
+  rfl
+
+lemma ker_eq : v.valZ_hom.ker = (vringUnitsSubgroup v) := by
+  ext x
+  constructor
+  · intro hx
+    have hZ0 : v.valZ x = 0 := (v.mem_ker_iff_valZ x).mp hx
+    have hx0 : v.f (x : K) = 0 := by simpa [hZ0] using v.valZ_spec x
+    have hx_nonneg : v.f (x : K) ≥ 0 := by simp [hx0]
+    have hx_inv0 : v.f ((x : K)⁻¹) = 0 := by
+      have := v.val_inv (x := (x : K)) x.ne_zero
+      simpa [hx0] using this
+    have hx_inv_nonneg : v.f ((x : K)⁻¹) ≥ 0 := by simp [hx_inv0]
+    let r : v.vring := ⟨(x : K), hx_nonneg⟩
+    let rinv : v.vring := ⟨(x : K)⁻¹, hx_inv_nonneg⟩
+    let u : (v.vring)ˣ :=
+      { val := r
+        inv := rinv
+        val_inv := by
+          ext
+          simp [r, rinv]
+        inv_val := by
+          ext
+          simp [r, rinv, mul_comm] }
+    refine ⟨u, ?_⟩
+    ext
+    simp [vringUnitsToUnits, u, r]
+  · intro hx
+    rcases hx with ⟨u, rfl⟩
+    let r : v.vring := (u : v.vring)
+    have hunit : ∃ s : v.vring, r * s = 1 := by
+      refine ⟨(u⁻¹ : (v.vring)ˣ), ?_⟩
+      have h := u.mul_inv      -- u * u⁻¹ = 1 in units
+      simp [r]
+    have hr0 : v.f (r : K) = 0 := (v.vring_unit r).mp hunit
+    have hx0 : v.f (vringUnitsToUnits v u : K) = 0 := by
+      simpa [vringUnitsToUnits] using hr0
+    have hZ0 : v.valZ (vringUnitsToUnits v u) = 0 := by
+      have hspec := v.valZ_spec (vringUnitsToUnits v u)
+      have : (v.valZ (vringUnitsToUnits v u) : WithTop ℤ)
+             = (0 : WithTop ℤ) := by
+        simpa [hspec] using hx0
+      exact_mod_cast this
+    have : vringUnitsToUnits v u ∈ v.valZ_hom.ker :=
+      (v.mem_ker_iff_valZ (vringUnitsToUnits v u)).mpr hZ0
+    simpa using this
+
+example (y : ℤ) : y ≠ (⊤ : WithTop ℤ) := by exact WithTop.coe_ne_top
+
+lemma vfsurj : Surjective (valZ v) := by
+  intro y
+  obtain ⟨r, hr⟩ := v.surj' y
+  have rnz : r ≠ 0 := by
+    intro req
+    rw [←v.zero_val r] at req
+    have : y ≠ (⊤ : WithTop ℤ) := by exact WithTop.coe_ne_top
+    apply this
+    rwa [←hr]
+  let u := Units.mk0 r rnz
+  use u
+  change v.valZ u = y
+  have hr' : v.f u = y := by simpa [u] using hr
+  have hspec : v.f u = v.valZ u := v.valZ_spec u
+  have hcoeq : v.valZ u = y := by simpa [hspec] using hr'
+  rw [←WithTop.coe_eq_coe]
+  norm_cast
+
+lemma range_eq : Surjective v.valZ_hom := by
+  intro y
+  set yz := Multiplicative.toAdd y with hz
+  obtain ⟨a, ha⟩ := vfsurj v yz
+  use a
+  simpa [valZ_hom]
+
+noncomputable def field_units_quotient_ring_units : ( Kˣ ⧸ (vringUnitsSubgroup v)) ≃* Multiplicative ℤ := by
+  rw [←ker_eq]
+  exact QuotientGroup.quotientKerEquivOfSurjective v.valZ_hom v.range_eq
 
 end VFunc
