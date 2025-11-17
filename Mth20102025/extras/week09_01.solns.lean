@@ -123,7 +123,8 @@ lemma val_inv {x : K} (hnz : x ≠ 0) : v.f x⁻¹ = - v.f x := by
   rw [hm, hn, hmneg]
   norm_cast
 
-lemma mem_or_inv_mem (x : K) (h : x ≠ 0) : x ∈ (vring v).carrier ∨ x⁻¹ ∈ (vring v).carrier := by
+lemma mem_or_inv_mem (x : K) (h : x ≠ 0) :
+    x ∈ (vring v).carrier ∨ x⁻¹ ∈ (vring v).carrier := by
   rw [or_iff_not_imp_left]
   intro hxnot
   show v.f x⁻¹ ≥ 0
@@ -276,7 +277,8 @@ lemma range_eq : Surjective v.valZ_hom := by
   use a
   simpa [valZ_hom]
 
-noncomputable def field_units_quotient_ring_units : ( Kˣ ⧸ (vringUnitsSubgroup v)) ≃* Multiplicative ℤ := by
+noncomputable def field_units_quotient_ring_units :
+    Kˣ ⧸ (vringUnitsSubgroup v) ≃* Multiplicative ℤ := by
   rw [←ker_eq]
   exact QuotientGroup.quotientKerEquivOfSurjective v.valZ_hom v.range_eq
 
