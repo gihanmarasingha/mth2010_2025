@@ -38,7 +38,7 @@ Note, you can also get Lean to perform the calculation by using
 
 example : a + b = ⟨sorry, sorry⟩ := by sorry
 
-example : a * b = ⟨sorry, sorry⟩ := by sorry
+example : a * b = sorry := by sorry
 
 end Z11calculations
 
