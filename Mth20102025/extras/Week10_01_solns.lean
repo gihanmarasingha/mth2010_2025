@@ -90,7 +90,6 @@ def prod : Ideal R where
     intro x₁ x₂ hx₁ hx₂
     rcases hx₁ with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
     rcases hx₂ with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
-    refine ?_
     refine ⟨ι₁ ⊕ ι₂, inferInstance,
       (fun i =>
         match i with
@@ -101,12 +100,6 @@ def prod : Ideal R where
         | Sum.inl i₁ => b₁ i₁
         | Sum.inr i₂ => b₂ i₂),
       ?_⟩
-    have h :=
-      (Fintype.sum_sum_type
-        (fun i : ι₁ ⊕ ι₂ =>
-          match i with
-          | Sum.inl i₁ => (a₁ i₁ : R) * (b₁ i₁ : R)
-          | Sum.inr i₂ => (a₂ i₂ : R) * (b₂ i₂ : R)))
     constructor
     · intro i
       constructor
@@ -119,8 +112,12 @@ def prod : Ideal R where
           simp
           apply (h₂ i₂).1
       aesop
-    simpa [hx₁, hx₂] using h.symm
-
-
-  zero_mem' := sorry
+    simp [hx₁, hx₂]
+  zero_mem' := by
+    use Unit, inferInstance
+    use fun i => 0
+    use fun i => 0
+    constructor
+    · simp
+    simp
   smul_mem' := sorry
