@@ -52,20 +52,75 @@ def sum : Ideal R where
     apply Ideal.mul_mem_left _ _ hb
 
 @[simp]
-def prod_carrier := {x | ∃ s : Finset (R × R),
-        (∀ p ∈ s, p.1 ∈ I ∧ p.2 ∈ J) ∧
-        x = ∑ p ∈ s, p.1 * p.2 }
+def prod_carrier : Set R :=
+  {x | ∃ (ι : Type*) (_ : Fintype ι)
+        (a b : ι → R),
+        (∀ i, a i ∈ I ∧ b i ∈ J) ∧
+        x = ∑ i, a i * b i }
 
-def prod : Ideal R where
+/- def prod : Ideal R where
   carrier := prod_carrier I J
   add_mem' := by
     show ∀ x₁ x₂, x₁ ∈ prod_carrier I J → x₂ ∈ prod_carrier I J → x₁ + x₂ ∈ prod_carrier I J
     rintro x₁ x₂ hx₁' hx₂'
-    rcases hx₁' with ⟨s₁, hm₁, hx₁⟩
-    rcases hx₂' with ⟨s₂, hm₂, hx₂⟩
+    simp at hx₁'
+    rcases hx₁' with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
+    rcases hx₂' with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
     simp
-    use s₁ ∪ s₂
+    use ι₁ ⊕ ι₂, inferInstance
+    refine (
+      fun i =>
+        match i with
+        | Sum.inl i₁ => a₁ i₁,
+        | Sum.inr i₂ => a₂ i₂,
+      ?_
+    )
+
+
     sorry
+
+  zero_mem' := sorry
+  smul_mem' := sorry -/
+
+
+
+def prod : Ideal R where
+  carrier := prod_carrier I J
+  add_mem' := by
+    intro x₁ x₂ hx₁ hx₂
+    rcases hx₁ with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
+    rcases hx₂ with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
+    refine ?_
+    refine ⟨ι₁ ⊕ ι₂, inferInstance,
+      (fun i =>
+        match i with
+        | Sum.inl i₁ => a₁ i₁
+        | Sum.inr i₂ => a₂ i₂),
+      (fun i =>
+        match i with
+        | Sum.inl i₁ => b₁ i₁
+        | Sum.inr i₂ => b₂ i₂),
+      ?_⟩
+    have h :=
+      (Fintype.sum_sum_type
+        (fun i : ι₁ ⊕ ι₂ =>
+          match i with
+          | Sum.inl i₁ => (a₁ i₁ : R) * (b₁ i₁ : R)
+          | Sum.inr i₂ => (a₂ i₂ : R) * (b₂ i₂ : R)))
+    constructor
+    · intro i
+      constructor
+      · simp
+        match i with
+        | Sum.inl i₁ =>
+          simp
+          apply (h₁ i₁).1
+        | Sum.inr i₂ =>
+          simp
+          apply (h₂ i₂).1
+      aesop
+    simpa [hx₁, hx₂] using h.symm
+
 
   zero_mem' := sorry
   smul_mem' := sorry
