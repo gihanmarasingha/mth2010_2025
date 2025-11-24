@@ -34,6 +34,12 @@ example {x y : R} (hx : x ∈ I) (hy : y ∈ I) : x + y ∈ I := by apply add_me
 example {x r : R} (hx : x ∈ I) : r * x ∈ I := by apply Ideal.mul_mem_left _ _ hx
 
 /-
+Remember you can use `ring` to prove equations involving a ring.
+-/
+
+example (a b r : R) : r * (a + b) = r * a + r * b := by ring
+
+/-
 ## Sum of ideals
 
 The carrier of the sum of `I` and `J` is the set
@@ -56,27 +62,43 @@ def sum : Ideal R where
     intro x₁ x₂ hx₁' hx₂'
     rcases hx₁' with ⟨a₁, ha₁, b₁, hb₁, hx₁⟩
     rcases hx₂' with ⟨a₂, ha₂, b₂, hb₂, hx₂⟩
-    simp
-    use a₁ + a₂, ?_, b₁ + b₂, ?_
-    · rw [hx₁, hx₂]
-      ring
-    · apply add_mem ha₁ ha₂
-    apply add_mem hb₁ hb₂ -- sorry
+    show x₁ + x₂ ∈ sum_set I J
+    use a₁ + a₂
+    constructor
+    · show a₁ + a₂ ∈ I
+      apply add_mem ha₁ ha₂
+    use b₁ + b₂
+    constructor
+    · show b₁ + b₂ ∈ J
+      apply add_mem hb₁ hb₂
+    rw [hx₁, hx₂]
+    ring
   zero_mem' := by
     show 0 ∈ sum_set I J
-    simp
-    use 0, ?_, 0, ?_ -- sorry copy the `use` above
-    all_goals simp
+    show ∃ a ∈ I, ∃ b ∈ J, 0 = a + b
+    use 0
+    constructor
+    · show 0 ∈ I; simp
+    use 0
+    constructor
+    · show 0 ∈ J; simp
+    show 0 = 0 + 0; simp
   smul_mem' := by
     show ∀ r x, x ∈ sum_set I J → r * x ∈ sum_set I J
     rintro r x hx'
     rcases hx' with ⟨a, ha, b, hb, hx⟩
-    simp
+    show r * x ∈ sum_set I J
     rw [hx]
-    use r * a, ?_, r * b, ?_
-    · ring
-    · apply Ideal.mul_mem_left _ _ ha
-    apply Ideal.mul_mem_left _ _ hb
+    use r * a
+    constructor
+    · show r * a ∈ I
+      apply Ideal.mul_mem_left _ _ ha
+    use r * b
+    constructor
+    · show r * b ∈ J
+      apply Ideal.mul_mem_left _ _ hb
+    show r * (a + b) = r * a + r * b
+    ring
 
 /-
 ## Products of ideals
