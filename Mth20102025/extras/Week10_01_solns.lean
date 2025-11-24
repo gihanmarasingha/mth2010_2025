@@ -1,7 +1,5 @@
 import Mathlib
 
-open Pointwise
-
 variable {R} [CommRing R] [DecidableEq R]
 
 variable (I J : Ideal R)
@@ -58,38 +56,12 @@ def prod_carrier : Set R :=
         (∀ i, a i ∈ I ∧ b i ∈ J) ∧
         x = ∑ i, a i * b i }
 
-/- def prod : Ideal R where
-  carrier := prod_carrier I J
-  add_mem' := by
-    show ∀ x₁ x₂, x₁ ∈ prod_carrier I J → x₂ ∈ prod_carrier I J → x₁ + x₂ ∈ prod_carrier I J
-    rintro x₁ x₂ hx₁' hx₂'
-    simp at hx₁'
-    rcases hx₁' with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
-    rcases hx₂' with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
-    simp
-    use ι₁ ⊕ ι₂, inferInstance
-    refine (
-      fun i =>
-        match i with
-        | Sum.inl i₁ => a₁ i₁,
-        | Sum.inr i₂ => a₂ i₂,
-      ?_
-    )
-
-
-    sorry
-
-  zero_mem' := sorry
-  smul_mem' := sorry -/
-
-
-
 def prod : Ideal R where
   carrier := prod_carrier I J
   add_mem' := by
-    intro x₁ x₂ hx₁ hx₂
-    rcases hx₁ with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
-    rcases hx₂ with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
+    intro x₁ x₂ hx₁' hx₂'
+    rcases hx₁' with ⟨ι₁, hι₁, a₁, b₁, h₁, hx₁⟩
+    rcases hx₂' with ⟨ι₂, hι₂, a₂, b₂, h₂, hx₂⟩
     refine ⟨ι₁ ⊕ ι₂, inferInstance,
       (fun i =>
         match i with
@@ -120,4 +92,19 @@ def prod : Ideal R where
     constructor
     · simp
     simp
-  smul_mem' := sorry
+  smul_mem' := by
+    intro r x hx'
+    rcases hx' with ⟨ι, hι, a, b, h, hx⟩
+    use ι, inferInstance
+    use fun i => r * (a i)
+    use b
+    constructor
+    · intro i
+      constructor
+      · have ha : a i ∈ I := (h i).1
+        apply Ideal.mul_mem_left _ _ ha
+      have hb : b i ∈ J := (h i).2
+      exact hb
+    rw [hx]
+    calc r * ∑ i, a i * b i = ∑ i, r * (a i * b i) := by simp [Finset.mul_sum]
+      _ = ∑ i, (r * a i) * b i := by simp [mul_assoc]
