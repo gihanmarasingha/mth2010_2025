@@ -1,6 +1,6 @@
 import Mathlib
 
-variable {R} [CommRing R] [DecidableEq R]
+variable {R} [CommRing R]
 
 variable (I J : Ideal R)
 
@@ -55,7 +55,7 @@ under multiplication on the left by elements of `R`.
 @[simp]
 def sum_set : Set R :=  {x | ∃ a ∈ I, ∃ b ∈ J, x = a + b}
 
-namespace sum_example
+namespace principal_example
 
 open Submodule
 
@@ -70,7 +70,7 @@ def I₁ : Ideal ℤ := span ℤ {2}
 
 def I₂ : Ideal ℤ := span ℤ {3}
 
-example : 1 ∈ sum_set I₁ I₂ := by
+lemma one_in_I_sum : 1 ∈ sum_set I₁ I₂ := by
   dsimp [sum_set]
   use 4, ?_, (-3), ?_ -- remains to show `1 = 4 - 3`, `4 ∈ I₁` and `-3 ∈ I₂`
   · show 1 = 4 + -3; simp
@@ -95,7 +95,22 @@ def J₂ : Ideal ℤ := span ℤ {7}
 example : 1 ∈ sum_set J₁ J₂ := by
   sorry
 
-end sum_example
+/-
+### (Optional) Exercise
+
+Show that the univeral set of `ℤ` equals `sum_set I₁ I₂` by completing the
+following.
+-/
+
+example : Set.univ = sum_set I₁ I₂ := by
+  apply le_antisymm
+  · rintro a -
+    simp [sum_set]
+    sorry
+  rintro a -
+  sorry
+
+end principal_example
 
 /-
 ### Exercise
@@ -103,7 +118,7 @@ end sum_example
 Finish the proof that `I + J` is an ideal.
 -/
 
-def sum : Ideal R where
+def sum_ideal : Ideal R where
   carrier := sum_set I J
   add_mem' := by
     show ∀ x₁ x₂, x₁ ∈ sum_set I J → x₂ ∈ sum_set I J → x₁ + x₂ ∈ sum_set I J
@@ -117,7 +132,6 @@ def sum : Ideal R where
       hx₁ : x₁ = a₁ + b₁
     ⟩
     rcases hx₂' with ⟨a₂, ha₂, b₂, hb₂, hx₂⟩
-    --
     show x₁ + x₂ ∈ sum_set I J
     use a₁ + a₂
     constructor
@@ -140,11 +154,31 @@ def sum : Ideal R where
     sorry
 
 /-
+### (Optional) Exercise
+
+Prove the following result that if an ideal `I` contains `1`, then it is the
+whole ring `R`. In Mathlib, this ideal is denoted `⊤`.
+-/
+
+lemma eq_univ_of_one_mem (h : 1 ∈ I) : ⊤ = I := by
+  apply le_antisymm
+  · sorry
+  sorry
+
+/-
 ## Products of ideals
 
 ### Exercise
 
-Finish the proof that `I * J` is an ideal
+In the definition below, the product set is the set of all `x : R` of the form
+
+  `x = ∑ i, a i * b i `
+
+This is a sum over all `i : ι` of `(a i) * (b i)`. Here, the functions
+`a : ι → R` and `b : ι → R` are sequences of elements of `R`
+with the condition that `a i ∈ I` and `b i ∈ J`.
+
+The sum is indexed over the type `i`, which is finite.
 -/
 
 @[simp]
@@ -152,9 +186,57 @@ def prod_set : Set R :=
   {x | ∃ (ι : Type*) (_ : Fintype ι)
         (a b : ι → R),
         (∀ i, a i ∈ I ∧ b i ∈ J) ∧
-        x = ∑ i, a i * b i }
+        x = ∑ (i : ι), a i * b i }
 
-def prod : Ideal R where
+/-
+### Product with 0
+
+As a first example, let `I` be an ideal of `R`. Consider the product `I * 0`.
+-/
+
+/--
+As sets, `0 * I ⊆ {0}`.
+-/
+lemma prod_set_zero_sub_zero : prod_set 0 I ⊆ {0} := by
+  intro z hz
+  rcases hz with ⟨ι, hι, a, b, h, hz⟩
+  simp
+  show z = 0
+  have : ∀ i : ι, a i = 0 := by
+    intro i
+    apply (h i).1
+  simpa [this] using hz
+
+/--
+As sets, `{0} ⊆ 0 * I`
+-/
+lemma zero_sub_prod_set_zero : {0} ⊆ prod_set 0 I := by
+  simp
+  use PUnit, inferInstance
+  let a : PUnit → R := fun i => 0
+  let b : PUnit → R := fun i => 0
+  use a, b
+  constructor
+  all_goals simp[a, b]
+
+/--
+As sets, `{0} = 0 * I`
+-/
+lemma prod_set_zero_eq_zero : prod_set 0 I = {0} := by
+  apply subset_antisymm
+  · apply prod_set_zero_sub_zero
+  apply zero_sub_prod_set_zero
+
+/-
+### Exercise
+
+As before, we need to show that the set `prod_ideal I₁ I₂` is an ideal of `R`.
+This is considerably harder than the same task for `sum_set` and `sum_ideal` as
+we need to work with indexed sums. For `add_mem'`, we need to understand
+so-called `Sum` types.
+-/
+
+def prod_ideal : Ideal R where
   carrier := prod_set I J
   add_mem' := by
     intro x₁ x₂ hx₁' hx₂'
@@ -189,7 +271,7 @@ def prod : Ideal R where
       sorry -- adapt the `match` proof above.
     simp [hx₁, hx₂]
   zero_mem' := by
-    use Unit, inferInstance
+    use PUnit, inferInstance
     sorry
   smul_mem' := by
     intro r x hx'
@@ -203,3 +285,96 @@ def prod : Ideal R where
       · sorry
       sorry
     sorry
+
+namespace principal_example
+
+/-
+### (Hard) Exercises
+
+Recall our earlier example where `I₁ = (2)` and `I₂ = (3)` are principal ideals
+of `ℤ`.
+
+Your task now is to prove `I₁ I₂ = (6)`. This can be decomposed into smaller
+tasks.
+
+### (Hard) Exercise
+
+Your first smaller task is to show `I₁ I₂ ⊆ (6)` as sets. Using this, you can
+show `I₁ I₂ ⊆ (6)` as ideals. Mathlib uses the notation `≤` for inclusion of
+ideals.
+-/
+
+open Submodule
+
+lemma example_prod_set_sub_principal : prod_set I₁ I₂ ⊆ {6 * r | r : ℤ} := by
+  intro x hx
+  rcases hx with ⟨ι, _, a, b, h, hx⟩
+  simp
+  rw [hx]
+  simp [I₁, I₂] at h
+  simp [Ideal.mem_span_singleton] at h
+  let c : ι → ℤ := fun i => Classical.choose (h i).1
+  let d : ι → ℤ := fun i => Classical.choose (h i).2
+  have hc : ∀ i, a i = 2 * (c i) := fun i => Classical.choose_spec (h i).1
+  have hd : ∀ i, b i = 3 * (d i) := fun i => Classical.choose_spec (h i).2
+  have hab : ∀ (i : ι), a i * b i = 6 * (c i * d i) := by
+    intro i
+    rw [hc i, hd i]
+    ring
+  simp [hab, ←Finset.mul_sum]
+
+lemma example_prod_ideal_le_principal : prod_ideal I₁ I₂ ≤ span ℤ {6} := by
+  intro x hx
+  simp
+  rw [Ideal.mem_span_singleton]
+  obtain ⟨r, hr⟩ := example_prod_set_sub_principal hx
+  use r
+  simp [hr]
+
+/-
+### (Hard) Exercise
+
+Now we prove the converse, that `(6) ⊆ prod_set I₁ I₂` and that
+`(6) ≤ prod_ideal I₁ I₂`.
+-/
+
+lemma example_principal_sub_prod_set : {6 * r | r : ℤ} ⊆ prod_set I₁ I₂ := by
+  intro z hz
+  rcases hz with ⟨x, hx⟩
+  dsimp [prod_set]
+  use PUnit, inferInstance
+  let a : PUnit → ℤ := fun i => 2
+  let b : PUnit → ℤ := fun i => 3 * x
+  use a, b
+  constructor
+  · intro i
+    simp [I₁, I₂, Ideal.mem_span_singleton, a, b]
+  simp [a, b, ←hx]
+  ring
+
+lemma example_principal_le_prod_ideal : span ℤ {6} ≤ prod_ideal I₁ I₂ := by
+  simp
+  intro z hz
+  rw [Ideal.mem_span_singleton] at hz
+  rcases hz with ⟨r, hr⟩
+  apply example_principal_sub_prod_set
+  use r
+  simp [hr]
+
+/-
+### Exercise
+
+Using the above, we show the sets (respectively ideals) are equal.
+-/
+
+lemma example_principal_eq_prod_set : {6 * r | r : ℤ} = prod_set I₁ I₂ := by
+  apply subset_antisymm
+  · apply example_principal_sub_prod_set
+  apply example_prod_set_sub_principal
+
+lemma example_principal_eq_prod_ideal : span ℤ {6} = prod_ideal I₁ I₂ := by
+  apply le_antisymm
+  · apply example_principal_le_prod_ideal
+  apply example_prod_ideal_le_principal
+
+end principal_example
